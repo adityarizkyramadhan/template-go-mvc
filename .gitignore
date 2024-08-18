@@ -1,0 +1,13 @@
+.idea
+.vscode
+*.log
+*.iml
+*.iws
+*.exe
+*.dll
+*.jpg
+*.png
+*.gif
+*.jepg
+*.pdf
+*.html
