@@ -1,16 +1,20 @@
 package repositories
 
 import (
+	"time"
+
 	"github.com/adityarizkyramadhan/template-go-mvc/model"
 	"github.com/adityarizkyramadhan/template-go-mvc/utils"
 	"github.com/google/uuid"
+	"github.com/redis/go-redis/v9"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 type (
 	User struct {
-		db *gorm.DB
+		db    *gorm.DB
+		redis *redis.Client
 	}
 	UserInterface interface {
 		FindOne(id uuid.UUID) (*model.User, error)
@@ -21,12 +25,13 @@ type (
 		VerifyOTP(otp string) (*model.User, error)
 		ResendEmailOTP(email string) (*model.User, error)
 		Login(email, password string) (*model.User, error)
+		Logout(token string, expired time.Duration) error
 	}
 )
 
 // NewUserRepository will create an object that represent the User.Repository interface
-func NewUserRepository(db *gorm.DB) UserInterface {
-	return &User{db}
+func NewUserRepository(db *gorm.DB, redis *redis.Client) UserInterface {
+	return &User{db, redis}
 }
 
 // FindOne will return a user by id
@@ -171,4 +176,12 @@ func (u *User) Login(email, password string) (*model.User, error) {
 	}
 
 	return &user, nil
+}
+
+func (u *User) Logout(token string, expired time.Duration) error {
+	err := u.redis.Set(u.db.Statement.Context, token, true, expired).Err()
+	if err != nil {
+		return utils.NewError(utils.ErrUnknown, "gagal logout")
+	}
+	return nil
 }

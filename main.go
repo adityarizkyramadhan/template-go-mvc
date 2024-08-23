@@ -84,6 +84,7 @@ func main() {
 		engine.Use(middleware.ErrorHandler())
 		engine.Use(middleware.LoggerRequest(logger))
 		engine.Use(middleware.CORS())
+		engine.Use(middleware.CheckToken(redis))
 	}))
 
 	router.Use(func(c *gin.Context) {
@@ -95,7 +96,7 @@ func main() {
 	router.GET("/api/v1/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	v1 := router.Group("/api/v1")
 
-	repoUser := repositories.NewUserRepository(db)
+	repoUser := repositories.NewUserRepository(db, redis)
 	userController := controller.NewUserController(repoUser)
 	userRoutes := routes.NewUserRoutes(userController)
 	userRoutes.SetupRoutes(v1)

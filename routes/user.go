@@ -20,6 +20,7 @@ func (u *User) SetupRoutes(router *gin.RouterGroup) {
 	router.GET("/user/verify/:otp", u.ctrlUser.VerifyOTP)
 	router.GET("/user/resend/:email", u.ctrlUser.ResendEmailOTP)
 	router.POST("/user/login", u.ctrlUser.Login)
+	router.GET("/user/logout", middleware.JWTMiddleware([]string{"admin", "user"}), u.ctrlUser.Logout)
 	router.PUT("/user", middleware.JWTMiddleware([]string{"admin", "user"}), u.ctrlUser.Update)
 	router.GET("/user", middleware.JWTMiddleware([]string{"admin", "user"}), u.ctrlUser.FindOne)
 }

@@ -202,3 +202,38 @@ func (u *User) ResendEmailOTP(ctx *gin.Context) {
 
 	utils.SuccessResponse(ctx, http.StatusOK, user)
 }
+
+// Logout will logout user
+// @Summary      Logout user
+// @Description  Logout user
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param 		 Authorization header string true "Bearer token"
+// @Success      200  {object}  utils.SuccessResponseData{data=string}
+// @Failure      422  {object}  utils.ErrorResponseData
+// @Failure      500  {object}  utils.ErrorResponseData
+// @Router       /user/logout [get]
+func (u *User) Logout(ctx *gin.Context) {
+	token := ctx.GetHeader("Authorization")
+	if token == "" {
+		_ = ctx.Error(utils.NewError(utils.ErrUnauthorized, "Token is required"))
+		ctx.Next()
+		return
+	}
+
+	durationToken, err := utils.GetExpiredToken(token)
+	if err != nil {
+		_ = ctx.Error(err)
+		ctx.Next()
+		return
+	}
+
+	if err := u.repoUser.Logout(token, durationToken); err != nil {
+		_ = ctx.Error(err)
+		ctx.Next()
+		return
+	}
+
+	utils.SuccessResponse(ctx, http.StatusOK, "Logout success")
+}
